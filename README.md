@@ -1,4 +1,4 @@
-# MEDICARE — Online Pharmacy Platform (Frontend Demo)
+# Popular Medi — Online Pharmacy Platform (Frontend Demo)
 
 A production-quality React + Vite + Tailwind frontend for an online pharmacy platform,
 inspired by the UX of leading Indian pharmacy apps. Mock data only — no backend included.

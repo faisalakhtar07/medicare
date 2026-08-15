@@ -14,7 +14,7 @@ export function openWhatsApp(message, number = WHATSAPP_NUMBER) {
 
 export function buildOrderMessage({ orderId, items, address, total, deliveryMethod, payment }) {
   const lines = [
-    `🧾 *New MEDICARE Order*`,
+    `🧾 *New POPULAR MEDI Order*`,
     `Order ID: ${orderId}`,
     ``,
     `*Items:*`,
@@ -60,7 +60,7 @@ export function buildPrescriptionMessage({ fileName }) {
     `📋 *Prescription Order*`,
     fileName ? `File: ${fileName}` : null,
     ``,
-    `I've uploaded a prescription on the MEDICARE app.`,
+    `I've uploaded a prescription on the POPULAR MEDI app.`,
     `👉 Please attach the prescription photo here (tap 📎 to attach).`,
   ].filter(Boolean).join('\n')
 }

@@ -179,7 +179,7 @@ const Navbar = ({ go, cartCount, wishlistCount, search, setSearch, onSearchSubmi
             <div className="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center">
               <Plus className="w-5 h-5 text-white" strokeWidth={3} />
             </div>
-            <span className="font-display font-semibold text-xl text-slate-900 tracking-tight hidden sm:block">MEDICARE</span>
+            <span className="font-display font-semibold text-xl text-slate-900 tracking-tight hidden sm:block"> POPULAR MEDI</span>
           </button>
 
           <div className="hidden md:block relative flex-1 max-w-xl mx-2">
@@ -292,7 +292,7 @@ const Footer = ({ go }) => (
       <div className="col-span-2 md:col-span-1">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center"><Plus className="w-4 h-4 text-white" strokeWidth={3} /></div>
-          <span className="font-display font-semibold text-lg text-white">MEDICARE</span>
+          <span className="font-display font-semibold text-lg text-white">POPULAR MEDI</span>
         </div>
         <p className="text-sm text-slate-400 font-body">Healthcare made simple. Demo pharmacy platform for illustrative purposes.</p>
       </div>
@@ -311,7 +311,7 @@ const Footer = ({ go }) => (
       ))}
     </div>
     <div className="max-w-7xl mx-auto px-6 pt-6 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3">
-      <p className="text-xs text-slate-500 font-mono">© 2026 MEDICARE — Demo build. Not a real pharmacy.</p>
+      <p className="text-xs text-slate-500 font-mono">© 2026 POPULAR MEDI — </p>
       <div className="flex items-center gap-2 text-xs text-slate-500 font-body"><ShieldCheck className="w-4 h-4 text-teal-500" /> 100% Genuine Products</div>
     </div>
   </footer>
@@ -395,7 +395,7 @@ const HomePage = ({ go, openProduct, cart, addToCart, wishlist, toggleWishlist }
     </section>
 
     <section className="max-w-7xl mx-auto px-6 py-4">
-      <Disclaimer>MEDICARE is a demo frontend. It does not provide medical advice, diagnosis, or dosage recommendations — always consult a qualified healthcare professional and read product packaging before use.</Disclaimer>
+      <Disclaimer>Popular Medi is a demo frontend. It does not provide medical advice, diagnosis, or dosage recommendations — always consult a qualified healthcare professional and read product packaging before use.</Disclaimer>
     </section>
   </div>
 );
