@@ -1,8 +1,8 @@
 // Central place that talks to the MEDICARE backend.
 // In local development the backend runs at http://localhost:5000.
-// In production, set _URL in Vercel's Environment Variables to your
+// In production, set VITE_API_URL in Vercel's Environment Variables to your
 // deployed backend's URL (e.g. https://medicare-backend.onrender.com).
-const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api`
 
 function getToken() {
   return localStorage.getItem('medicare_token')
@@ -136,4 +136,4 @@ export const api = {
   verifyPayment: (payload) => request('/payments/verify', { method: 'POST', body: payload }),
 }
 
-export const FILE_BASE = `${import.meta.env.VITE_API_URL}/api`;
+export const FILE_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'

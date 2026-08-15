@@ -14,7 +14,7 @@ export default function LabTests() {
     api
       .getLabTests()
       .then(setTests)
-      .catch(() => setError('Could not reach the backend. Please try again later.'))
+      .catch(() => setError('Could not reach the backend. Make sure it is running at localhost:5000.'))
       .finally(() => setLoading(false))
   }, [])
 

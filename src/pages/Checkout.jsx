@@ -98,7 +98,7 @@ export default function Checkout() {
         key: keyId,
         amount,
         currency,
-        name: 'POPULAR MEDI',
+        name: 'MEDICARE',
         description: `Order ${order.orderNumber}`,
         order_id: razorpayOrderId,
         prefill: { name: user?.name, email: user?.email, contact: address.mobile },

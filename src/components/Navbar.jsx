@@ -37,7 +37,7 @@ export default function Navbar() {
             <span className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white">
               <Cross size={18} />
             </span>
-            <span className="text-xl font-display font-extrabold text-navy-900">POPULAR MEDI</span>
+            <span className="text-xl font-display font-extrabold text-navy-900">MEDICARE</span>
           </Link>
 
           <SearchBar className="flex-1 max-w-xl" />
@@ -91,7 +91,7 @@ export default function Navbar() {
             <span className="w-6 h-6 rounded-md bg-teal-600 flex items-center justify-center text-white">
               <Cross size={13} />
             </span>
-            <span className="text-base font-display font-extrabold text-navy-900">POPULAR MEDI</span>
+            <span className="text-base font-display font-extrabold text-navy-900">MEDICARE</span>
           </Link>
           <div className="flex items-center gap-3.5">
             <button onClick={() => setMobileSearch((s) => !s)} className="focus-ring" aria-label="Search">

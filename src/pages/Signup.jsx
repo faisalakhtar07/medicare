@@ -42,7 +42,7 @@ export default function Signup() {
           <Cross size={22} />
         </div>
         <h1 className="text-xl font-display font-bold">Create your account</h1>
-        <p className="text-sm text-navy-900/50">Join Popular Medi for faster checkout and order tracking.</p>
+        <p className="text-sm text-navy-900/50">Join MEDICARE for faster checkout and order tracking.</p>
       </div>
 
       <form onSubmit={submit} className="space-y-3.5">
@@ -84,7 +84,7 @@ export default function Signup() {
         Already have an account? <Link to="/login" className="focus-ring text-teal-700 font-semibold">Login</Link>
       </p>
       <p className="text-center text-[11px] text-navy-900/30 mt-3">
-        Make sure your backend server is running at properly.
+        Make sure your backend server is running at localhost:5000
       </p>
     </div>
   )
