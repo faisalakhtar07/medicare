@@ -1,25 +1,32 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Cross, Smartphone, Mail } from 'lucide-react'
+import { Cross, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import Button from '../components/Button.jsx'
 import { useToast } from '../context/ToastContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 
 export default function Login() {
-  const [mode, setMode] = useState('mobile')
-  const [value, setValue] = useState('')
-  const [otpSent, setOtpSent] = useState(false)
-  const [otp, setOtp] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const { login } = useAuth()
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
-    if (!otpSent) {
-      setOtpSent(true)
-      showToast('OTP sent')
-    } else {
+    setError('')
+    setLoading(true)
+    try {
+      await login(email.trim().toLowerCase(), password)
       showToast('Logged in successfully')
       navigate('/profile')
+    } catch (err) {
+      setError(err.message || 'Login failed')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -33,53 +40,51 @@ export default function Login() {
         <p className="text-sm text-navy-900/50">Login to manage your orders and prescriptions.</p>
       </div>
 
-      <div className="flex bg-skyfaint rounded-full p-1 mb-6">
-        <button onClick={() => { setMode('mobile'); setOtpSent(false) }} className={`focus-ring flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-full ${mode === 'mobile' ? 'bg-white shadow-sm' : 'text-navy-900/50'}`}>
-          <Smartphone size={13} /> Mobile
-        </button>
-        <button onClick={() => { setMode('email'); setOtpSent(false) }} className={`focus-ring flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-full ${mode === 'email' ? 'bg-white shadow-sm' : 'text-navy-900/50'}`}>
-          <Mail size={13} /> Email
-        </button>
-      </div>
-
       <form onSubmit={submit} className="space-y-3.5">
-        {!otpSent ? (
+        <div className="relative">
+          <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-navy-900/30" />
           <input
             required
-            type={mode === 'mobile' ? 'tel' : 'email'}
-            placeholder={mode === 'mobile' ? 'Mobile Number' : 'Email Address'}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className="focus-ring w-full border border-navy-900/15 rounded-lg px-3.5 py-2.5 text-sm"
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="focus-ring w-full border border-navy-900/15 rounded-lg pl-10 pr-3.5 py-2.5 text-sm"
           />
-        ) : (
-          <div>
-            <p className="text-xs text-navy-900/50 mb-2">Enter the OTP sent to {value || 'your ' + mode}</p>
-            <input
-              required
-              maxLength={6}
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              className="focus-ring w-full border border-navy-900/15 rounded-lg px-3.5 py-2.5 text-sm tracking-[0.5em] text-center font-semibold"
-            />
-          </div>
-        )}
-        <Button type="submit" className="w-full">{otpSent ? 'Verify & Login' : 'Send OTP'}</Button>
+        </div>
+        <div className="relative">
+          <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-navy-900/30" />
+          <input
+            required
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="focus-ring w-full border border-navy-900/15 rounded-lg pl-10 pr-10 py-2.5 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((s) => !s)}
+            className="focus-ring absolute right-3 top-1/2 -translate-y-1/2 text-navy-900/40 hover:text-navy-900/70"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
+        {error && <p className="text-xs text-coral">{error}</p>}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
+        </Button>
       </form>
-
-      <div className="flex items-center gap-3 my-6">
-        <div className="h-px bg-navy-900/10 flex-1" />
-        <span className="text-xs text-navy-900/40">or</span>
-        <div className="h-px bg-navy-900/10 flex-1" />
-      </div>
-
-      <button className="focus-ring w-full flex items-center justify-center gap-2 border border-navy-900/15 rounded-full py-2.5 text-sm font-medium hover:bg-skyfaint">
-        <span className="text-base">G</span> Continue with Google
-      </button>
 
       <p className="text-center text-xs text-navy-900/50 mt-6">
         New here? <Link to="/signup" className="focus-ring text-teal-700 font-semibold">Create an account</Link>
+      </p>
+      <p className="text-center text-xs text-navy-900/40 mt-3">
+        <Link to="/staff/login" className="focus-ring hover:text-navy-900/70">Owner / Delivery Login →</Link>
+      </p>
+      <p className="text-center text-[11px] text-navy-900/30 mt-3">
+        Make sure your backend server is running at localhost:5000
       </p>
     </div>
   )

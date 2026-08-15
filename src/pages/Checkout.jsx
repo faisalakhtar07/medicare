@@ -1,27 +1,34 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MapPin, Truck, Zap, Wallet, CreditCard, Landmark, Banknote, Check } from 'lucide-react'
+import { MapPin, Truck, Zap, Wallet, CreditCard, Landmark, Banknote, Check, ShieldCheck } from 'lucide-react'
 import Button from '../components/Button.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import { useCart } from '../context/CartContext.jsx'
-import { openWhatsApp, buildOrderMessage } from '../utils/whatsapp.js'
+import { useAuth } from '../context/AuthContext.jsx'
+import { useToast } from '../context/ToastContext.jsx'
+import { api } from '../utils/api.js'
+import { loadRazorpayScript } from '../utils/razorpay.js'
 
 const steps = ['Delivery Address', 'Delivery Method', 'Payment']
 
 const paymentOptions = [
-  { id: 'upi', label: 'UPI', icon: Wallet, hint: 'Google Pay, PhonePe, Paytm' },
-  { id: 'card', label: 'Credit / Debit Card', icon: CreditCard, hint: 'Visa, Mastercard, RuPay' },
-  { id: 'netbanking', label: 'Net Banking', icon: Landmark, hint: 'All major banks' },
-  { id: 'cod', label: 'Cash on Delivery', icon: Banknote, hint: 'Pay when delivered' },
+  { id: 'upi', label: 'UPI', icon: Wallet, hint: 'Google Pay, PhonePe, Paytm', online: true },
+  { id: 'card', label: 'Credit / Debit Card', icon: CreditCard, hint: 'Visa, Mastercard, RuPay', online: true },
+  { id: 'netbanking', label: 'Net Banking', icon: Landmark, hint: 'All major banks', online: true },
+  { id: 'cod', label: 'Cash on Delivery', icon: Banknote, hint: 'Pay when delivered', online: false },
 ]
 
 export default function Checkout() {
   const { items, itemTotal, discount, deliveryFee, total, clearCart } = useCart()
+  const { user, isAuthenticated } = useAuth()
+  const { showToast } = useToast()
   const [step, setStep] = useState(0)
   const [address, setAddress] = useState({ name: '', mobile: '', house: '', street: '', area: '', city: '', state: '', pin: '' })
   const [deliveryMethod, setDeliveryMethod] = useState('standard')
   const [payment, setPayment] = useState('upi')
+  const [placing, setPlacing] = useState(false)
+  const [payStage, setPayStage] = useState('') // '', 'creating-order', 'opening-gateway'
   const navigate = useNavigate()
 
   if (items.length === 0) {
@@ -32,16 +39,113 @@ export default function Checkout() {
     )
   }
 
-  const addressValid = address.name && address.mobile.length === 10 && address.house && address.city && address.pin.length === 6
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-3xl mx-auto px-5 lg:px-6 py-6">
+        <EmptyState icon="🔒" title="Please login to checkout" message="Create an account or login so we can save your order and let you track it." ctaLabel="Login / Signup" ctaTo="/login" />
+      </div>
+    )
+  }
 
-  const placeOrder = () => {
-    const orderId = 'MC' + Math.floor(200000 + Math.random() * 90000)
-    const paymentLabel = paymentOptions.find((p) => p.id === payment)?.label
-    const finalTotal = total + (deliveryMethod === 'express' ? 49 : 0)
-    openWhatsApp(buildOrderMessage({ orderId, items, address, total: finalTotal, deliveryMethod, payment: paymentLabel }))
+  const addressValid = address.name && address.mobile.length === 10 && address.house && address.city && address.pin.length === 6
+  const finalDeliveryFee = deliveryFee + (deliveryMethod === 'express' ? 49 : 0)
+  const finalTotal = total + (deliveryMethod === 'express' ? 49 : 0)
+
+  const finishAndGoToSuccess = (orderNumber, paid) => {
     const orderedItems = items
     clearCart()
-    navigate('/order-success', { state: { orderId, address, total: finalTotal, deliveryMethod, items: orderedItems } })
+    navigate('/order-success', { state: { orderId: orderNumber, address, total: finalTotal, deliveryMethod, items: orderedItems, paid } })
+  }
+
+  const placeOrder = async () => {
+    setPlacing(true)
+    try {
+      // 1. Always create the order in the database first (status: Pending payment for online methods)
+      const order = await api.placeOrder({
+        items: items.map((i) => ({ product: i.id, name: i.name, brand: i.brand, image: i.image, qty: i.qty, price: i.price })),
+        address: { fullName: address.name, mobile: address.mobile, house: address.house, street: address.street, area: address.area, city: address.city, state: address.state, pin: address.pin },
+        itemTotal,
+        discount,
+        deliveryFee: finalDeliveryFee,
+        total: finalTotal,
+        deliveryMethod,
+        paymentMethod: payment,
+      })
+
+      const selected = paymentOptions.find((p) => p.id === payment)
+
+      // 2. Cash on Delivery — nothing more to do, order is placed.
+      if (!selected.online) {
+        finishAndGoToSuccess(order.orderNumber, false)
+        return
+      }
+
+      // 3. Online payment — open the real Razorpay checkout (test mode: no real money moves).
+      setPayStage('creating-order')
+      const { keyId } = await api.getRazorpayKey()
+      const { razorpayOrderId, amount, currency } = await api.createRazorpayOrder(order.id)
+
+      setPayStage('opening-gateway')
+      const scriptOk = await loadRazorpayScript()
+      if (!scriptOk) {
+        showToast('Could not load the payment gateway. Check your internet connection.')
+        setPlacing(false)
+        setPayStage('')
+        return
+      }
+
+      const rzp = new window.Razorpay({
+        key: keyId,
+        amount,
+        currency,
+        name: 'MEDICARE',
+        description: `Order ${order.orderNumber}`,
+        order_id: razorpayOrderId,
+        prefill: { name: user?.name, email: user?.email, contact: address.mobile },
+        theme: { color: '#0E9C90' },
+        handler: async (response) => {
+          try {
+            await api.verifyPayment({
+              orderId: order.id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            })
+            showToast('Payment successful')
+            finishAndGoToSuccess(order.orderNumber, true)
+          } catch (err) {
+            showToast(err.message || 'Payment verification failed')
+            setPlacing(false)
+            setPayStage('')
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            showToast('Payment cancelled. Your order is saved — you can pay again from My Orders.')
+            setPlacing(false)
+            setPayStage('')
+          },
+        },
+      })
+      rzp.on('payment.failed', () => {
+        showToast('Payment failed. Your order is saved — you can pay again from My Orders.')
+        setPlacing(false)
+        setPayStage('')
+      })
+      rzp.open()
+    } catch (err) {
+      showToast(err.message || 'Could not place order')
+      setPlacing(false)
+      setPayStage('')
+    }
+  }
+
+  const payButtonLabel = () => {
+    if (payStage === 'creating-order') return 'Preparing payment...'
+    if (payStage === 'opening-gateway') return 'Opening payment window...'
+    if (placing) return 'Placing order...'
+    const selected = paymentOptions.find((p) => p.id === payment)
+    return selected?.online ? `Pay ₹${finalTotal}` : 'Place Order'
   }
 
   return (
@@ -123,10 +227,13 @@ export default function Checkout() {
                   </label>
                 ))}
               </div>
-              <p className="text-[11px] text-navy-900/40 mt-4">This is a demo checkout. No real payment will be processed.</p>
+              <div className="flex items-start gap-2 bg-teal-50 border border-teal-100 rounded-lg p-3 text-[11px] text-teal-800 leading-relaxed mt-4">
+                <ShieldCheck size={14} className="shrink-0 mt-0.5" />
+                UPI / Card / Net Banking open a real secure payment window (Razorpay test mode) — no real money is charged in this demo.
+              </div>
               <div className="flex gap-3 mt-6">
-                <Button variant="ghost" onClick={() => setStep(1)}>Back</Button>
-                <Button onClick={placeOrder}>Place Order</Button>
+                <Button variant="ghost" onClick={() => setStep(1)} disabled={placing}>Back</Button>
+                <Button onClick={placeOrder} disabled={placing}>{payButtonLabel()}</Button>
               </div>
             </div>
           )}
@@ -146,9 +253,9 @@ export default function Checkout() {
           <div className="space-y-2 text-sm text-navy-900/60">
             <div className="flex justify-between"><span>Subtotal</span><span>₹{itemTotal}</span></div>
             <div className="flex justify-between text-mint-600"><span>Discount</span><span>−₹{discount}</span></div>
-            <div className="flex justify-between"><span>Delivery</span><span>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span></div>
+            <div className="flex justify-between"><span>Delivery</span><span>{finalDeliveryFee === 0 ? 'FREE' : `₹${finalDeliveryFee}`}</span></div>
             <div className="h-px bg-navy-900/10 my-2" />
-            <div className="flex justify-between text-navy-900 font-bold text-base"><span>Total</span><span>₹{total + (deliveryMethod === 'express' ? 49 : 0)}</span></div>
+            <div className="flex justify-between text-navy-900 font-bold text-base"><span>Total</span><span>₹{finalTotal}</span></div>
           </div>
         </div>
       </div>

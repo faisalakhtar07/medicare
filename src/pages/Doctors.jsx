@@ -1,11 +1,26 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Info } from 'lucide-react'
 import DoctorCard from '../components/DoctorCard.jsx'
-import { doctors, doctorSpecializations } from '../data/doctors.js'
+import { ProductGridSkeleton } from '../components/Skeleton.jsx'
+import { doctorSpecializations } from '../data/doctors.js'
+import { api } from '../utils/api.js'
 
 export default function Doctors() {
   const [active, setActive] = useState('All')
-  const filtered = useMemo(() => (active === 'All' ? doctors : doctors.filter((d) => d.specialization === active)), [active])
+  const [doctors, setDoctors] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    setLoading(true)
+    api
+      .getDoctors()
+      .then(setDoctors)
+      .catch(() => setError('Could not reach the backend. Make sure it is running at localhost:5000.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const filtered = useMemo(() => (active === 'All' ? doctors : doctors.filter((d) => d.specialization === active)), [active, doctors])
 
   return (
     <div className="max-w-7xl mx-auto px-5 lg:px-6 py-6 md:py-10">
@@ -16,6 +31,8 @@ export default function Doctors() {
         <Info size={14} className="shrink-0 mt-0.5" />
         This is a demo frontend. Real medical consultation requires backend verification and licensed professionals.
       </div>
+
+      {error && <div className="bg-amber-50 border border-amber-200/60 rounded-lg p-4 text-sm text-amber-900/80 mb-5">{error}</div>}
 
       <div className="flex gap-2 overflow-x-auto scrollbar-none pb-4">
         {['All', ...doctorSpecializations].map((s) => (
@@ -31,9 +48,13 @@ export default function Doctors() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-        {filtered.map((d) => <DoctorCard key={d.id} doctor={d} />)}
-      </div>
+      {loading ? (
+        <ProductGridSkeleton count={6} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+          {filtered.map((d) => <DoctorCard key={d.id} doctor={d} />)}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Star, Minus, Plus, Heart, ShieldAlert, Truck, BadgeCheck, ChevronRight } from 'lucide-react'
 import Button from '../components/Button.jsx'
 import ProductCard from '../components/ProductCard.jsx'
 import EmptyState from '../components/EmptyState.jsx'
-import { products } from '../data/products.js'
+import { api } from '../utils/api.js'
 import { useCart } from '../context/CartContext.jsx'
 import { useWishlist } from '../context/WishlistContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
@@ -12,18 +12,35 @@ import { useToast } from '../context/ToastContext.jsx'
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const product = products.find((p) => p.id === id)
+  const [product, setProduct] = useState(null)
+  const [related, setRelated] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
   const [qty, setQty] = useState(1)
   const { addToCart } = useCart()
   const { toggleWishlist, isWishlisted } = useWishlist()
   const { showToast } = useToast()
 
-  if (!product) {
+  useEffect(() => {
+    setLoading(true)
+    setNotFound(false)
+    api
+      .getProduct(id)
+      .then((p) => {
+        setProduct(p)
+        return api.getProducts({ category: p.category })
+      })
+      .then((list) => setRelated(list.filter((p) => p.id !== id).slice(0, 4)))
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  if (loading) return <div className="max-w-6xl mx-auto px-5 py-16 text-center text-sm text-navy-900/40">Loading product...</div>
+  if (notFound || !product) {
     return <EmptyState icon="📦" title="Product not found" message="This product may have been removed or is unavailable." ctaLabel="Browse Medicines" ctaTo="/medicines" />
   }
 
   const discountPct = Math.round(((product.mrp - product.price) / product.mrp) * 100)
-  const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4)
   const wishlisted = isWishlisted(product.id)
 
   return (
@@ -36,7 +53,13 @@ export default function ProductDetail() {
 
       <div className="grid md:grid-cols-2 gap-10">
         <div>
-          <div className="aspect-square rounded-xl2 bg-skyfaint flex items-center justify-center text-9xl mb-3">{product.image}</div>
+          <div className="aspect-square rounded-xl2 bg-skyfaint flex items-center justify-center text-9xl mb-3 overflow-hidden">
+            {product.image?.startsWith('http') ? (
+              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+            ) : (
+              product.image || '💊'
+            )}
+          </div>
         </div>
 
         <div>

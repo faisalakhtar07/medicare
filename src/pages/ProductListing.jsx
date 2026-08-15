@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { SlidersHorizontal, LayoutGrid, List, X } from 'lucide-react'
+import { SlidersHorizontal, LayoutGrid, List } from 'lucide-react'
 import ProductCard from '../components/ProductCard.jsx'
 import FilterSidebar from '../components/FilterSidebar.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import { ProductGridSkeleton } from '../components/Skeleton.jsx'
 import Modal from '../components/Modal.jsx'
-import { products, brands } from '../data/products.js'
 import { categories } from '../data/categories.js'
+import { api } from '../utils/api.js'
 
 const sortOptions = [
   { label: 'Popularity', value: 'popularity' },
@@ -22,7 +22,10 @@ export default function ProductListing({ title, filterCategory }) {
   const catInfo = categories.find((c) => c.slug === category)
   const pageTitle = title || catInfo?.name || 'Products'
 
+  const [allProducts, setAllProducts] = useState([])
+  const [brands, setBrands] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [sort, setSort] = useState('popularity')
   const [view, setView] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
@@ -30,24 +33,30 @@ export default function ProductListing({ title, filterCategory }) {
 
   useEffect(() => {
     setLoading(true)
-    const t = setTimeout(() => setLoading(false), 500)
-    return () => clearTimeout(t)
-  }, [category])
+    setError('')
+    const params = {}
+    if (category) params.category = category
+    if (sort === 'price-asc' || sort === 'price-desc' || sort === 'rating') params.sort = sort
+
+    api
+      .getProducts(params)
+      .then((data) => {
+        setAllProducts(data)
+        setBrands([...new Set(data.map((p) => p.brand))].sort())
+      })
+      .catch(() => setError('Could not reach the backend. Make sure it is running at localhost:5000.'))
+      .finally(() => setLoading(false))
+  }, [category, sort])
 
   const filtered = useMemo(() => {
-    let list = category ? products.filter((p) => p.category === category) : products
+    let list = allProducts
     if (filters.brands.length) list = list.filter((p) => filters.brands.includes(p.brand))
     if (filters.price) list = list.filter((p) => p.price >= filters.price.min && p.price < filters.price.max)
     if (filters.rxOnly) list = list.filter((p) => p.prescriptionRequired)
     if (filters.otcOnly) list = list.filter((p) => !p.prescriptionRequired)
     if (filters.minRating) list = list.filter((p) => p.rating >= filters.minRating)
-
-    list = [...list]
-    if (sort === 'price-asc') list.sort((a, b) => a.price - b.price)
-    if (sort === 'price-desc') list.sort((a, b) => b.price - a.price)
-    if (sort === 'rating') list.sort((a, b) => b.rating - a.rating)
     return list
-  }, [category, filters, sort])
+  }, [allProducts, filters])
 
   return (
     <div className="max-w-7xl mx-auto px-5 lg:px-6 py-6 md:py-8">
@@ -55,6 +64,10 @@ export default function ProductListing({ title, filterCategory }) {
         <h1 className="text-xl md:text-2xl font-display font-bold">{pageTitle}</h1>
         <p className="text-xs text-navy-900/40 mt-1">{filtered.length} products found</p>
       </div>
+
+      {error && (
+        <div className="bg-amber-50 border border-amber-200/60 rounded-lg p-4 text-sm text-amber-900/80 mb-5">{error}</div>
+      )}
 
       <div className="grid md:grid-cols-[220px_1fr] gap-8">
         <aside className="hidden md:block">

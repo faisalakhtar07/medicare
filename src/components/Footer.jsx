@@ -89,6 +89,14 @@ export default function Footer() {
           <div className="flex items-center gap-3">
             <span className="px-2 py-1 bg-white/5 rounded">🔒 Secure Payments</span>
             <span className="px-2 py-1 bg-white/5 rounded">✓ Verified Pharmacy Partners</span>
+            <a
+             href="https://www.instagram.com/faisal.istic?igsh=Y3Z0bWZicmNnNjR6"
+             target="_blank"
+             rel="noopener noreferrer"
+             className="px-2 py-1 bg-white/5 rounded hover:bg-white/10 transition cursor-pointer"
+             >
+              Made by Faisal Akhtar
+            </a>
           </div>
         </div>
       </div>

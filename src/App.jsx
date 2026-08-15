@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
@@ -24,6 +24,13 @@ import OrderTrack from './pages/OrderTrack.jsx'
 import Wishlist from './pages/Wishlist.jsx'
 import SearchResults from './pages/SearchResults.jsx'
 import StaticPage from './pages/StaticPage.jsx'
+import StaffLogin from './pages/StaffLogin.jsx'
+import StaffRegister from './pages/StaffRegister.jsx'
+import OwnerDashboard from './pages/OwnerDashboard.jsx'
+import OwnerPrescriptions from './pages/OwnerPrescriptions.jsx'
+import DeliveryDashboard from './pages/DeliveryDashboard.jsx'
+import AddressBook from './pages/AddressBook.jsx'
+import NotificationsPage from './pages/NotificationsPage.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function PageWrap({ children }) {
@@ -67,6 +74,8 @@ export default function App() {
             <Route path="/login" element={<PageWrap><Login /></PageWrap>} />
             <Route path="/signup" element={<PageWrap><Signup /></PageWrap>} />
             <Route path="/profile" element={<PageWrap><Profile /></PageWrap>} />
+            <Route path="/profile/addresses" element={<PageWrap><AddressBook /></PageWrap>} />
+            <Route path="/profile/notifications" element={<PageWrap><NotificationsPage /></PageWrap>} />
             <Route path="/orders" element={<PageWrap><Orders /></PageWrap>} />
             <Route path="/orders/:id" element={<PageWrap><OrderTrack /></PageWrap>} />
             <Route path="/track-order/:id" element={<PageWrap><OrderTrack /></PageWrap>} />
@@ -76,6 +85,13 @@ export default function App() {
             <Route path="/faq" element={<PageWrap><StaticPage type="faq" /></PageWrap>} />
             <Route path="/privacy" element={<PageWrap><StaticPage type="privacy" /></PageWrap>} />
             <Route path="/terms" element={<PageWrap><StaticPage type="terms" /></PageWrap>} />
+            <Route path="/admin" element={<Navigate to="/owner" replace />} />
+            <Route path="/admin/customers/:id" element={<Navigate to="/owner" replace />} />
+            <Route path="/staff/login" element={<PageWrap><StaffLogin /></PageWrap>} />
+            <Route path="/staff/register" element={<PageWrap><StaffRegister /></PageWrap>} />
+            <Route path="/owner" element={<PageWrap><OwnerDashboard /></PageWrap>} />
+            <Route path="/owner/prescriptions" element={<PageWrap><OwnerPrescriptions /></PageWrap>} />
+            <Route path="/delivery" element={<PageWrap><DeliveryDashboard /></PageWrap>} />
             <Route path="*" element={<PageWrap><NotFound /></PageWrap>} />
           </Routes>
         </AnimatePresence>

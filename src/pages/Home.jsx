@@ -1,11 +1,13 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FileText, FlaskConical, Stethoscope, ShoppingBag, ArrowRight, ShieldCheck, Truck, BadgePercent } from 'lucide-react'
 import Button from '../components/Button.jsx'
 import CategoryCard from '../components/CategoryCard.jsx'
 import ProductCard from '../components/ProductCard.jsx'
+import { ProductGridSkeleton } from '../components/Skeleton.jsx'
 import { categories } from '../data/categories.js'
-import { products } from '../data/products.js'
+import { api } from '../utils/api.js'
 
 const quickActions = [
   { icon: FileText, title: 'Order Medicines', desc: 'Upload prescription and order medicines easily.', to: '/prescription', color: 'bg-teal-50 text-teal-700' },
@@ -21,8 +23,23 @@ const trust = [
 ]
 
 export default function Home() {
-  const featured = products.slice(0, 8)
-  const vitamins = products.filter((p) => p.category === 'vitamins' || p.category === 'ayurveda').slice(0, 8)
+  const [featured, setFeatured] = useState([])
+  const [vitamins, setVitamins] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    Promise.all([
+      api.getProducts({ category: 'medicines' }),
+      api.getProducts({ category: 'vitamins' }),
+    ])
+      .then(([meds, vits]) => {
+        setFeatured(meds.slice(0, 8))
+        setVitamins(vits.slice(0, 8))
+      })
+      .catch(() => setError('Could not reach the backend. Make sure it is running at localhost:5000.'))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <div>
@@ -97,15 +114,23 @@ export default function Home() {
         </div>
       </section>
 
+      {error && (
+        <div className="max-w-7xl mx-auto px-5 lg:px-6">
+          <div className="bg-amber-50 border border-amber-200/60 rounded-lg p-4 text-sm text-amber-900/80">{error}</div>
+        </div>
+      )}
+
       {/* Featured products */}
       <section className="max-w-7xl mx-auto px-5 lg:px-6 py-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-display font-bold">Popular Medicines</h2>
           <Link to="/medicines" className="focus-ring text-xs font-semibold text-teal-700 flex items-center gap-1">View All <ArrowRight size={13} /></Link>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-          {featured.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
+        {loading ? <ProductGridSkeleton /> : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+            {featured.map((p) => <ProductCard key={p._id} product={p} />)}
+          </div>
+        )}
       </section>
 
       {/* Vitamins rail */}
@@ -114,9 +139,11 @@ export default function Home() {
           <h2 className="text-lg font-display font-bold">Vitamins & Wellness</h2>
           <Link to="/category/vitamins" className="focus-ring text-xs font-semibold text-teal-700 flex items-center gap-1">View All <ArrowRight size={13} /></Link>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-          {vitamins.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
+        {!loading && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+            {vitamins.map((p) => <ProductCard key={p._id} product={p} />)}
+          </div>
+        )}
       </section>
 
       {/* Banner */}

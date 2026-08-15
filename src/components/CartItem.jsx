@@ -7,8 +7,12 @@ export default function CartItem({ item }) {
 
   return (
     <div className="flex gap-3.5 py-4 border-b border-navy-900/5 last:border-0">
-      <Link to={`/medicines/${item.id}`} className="focus-ring w-16 h-16 shrink-0 rounded-lg bg-skyfaint flex items-center justify-center text-2xl">
-        {item.image}
+      <Link to={`/medicines/${item.id}`} className="focus-ring w-16 h-16 shrink-0 rounded-lg bg-skyfaint flex items-center justify-center text-2xl overflow-hidden">
+        {item.image?.startsWith('http') ? (
+          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+        ) : (
+          item.image || '💊'
+        )}
       </Link>
       <div className="flex-1 min-w-0">
         <Link to={`/medicines/${item.id}`} className="focus-ring text-sm font-semibold line-clamp-2 block">{item.name}</Link>

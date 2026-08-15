@@ -11,7 +11,7 @@ export const doctors = [
     nextSlot: '4:30 PM',
     avatar: '👩‍⚕️',
     color: '#0E9C90',
-    phone: '917360800529', // TODO: replace with this doctor's real WhatsApp number
+    phone: '917360800529', // TODO: replace with this doctor's real contact number
   },
   {
     id: 'd2',
@@ -25,7 +25,7 @@ export const doctors = [
     nextSlot: '6:00 PM',
     avatar: '🧑‍⚕️',
     color: '#22A96C',
-    phone: '917360800529', // TODO: replace with this doctor's real WhatsApp number
+    phone: '917360800529', // TODO: replace with this doctor's real contact number
   },
   {
     id: 'd3',
@@ -39,7 +39,7 @@ export const doctors = [
     nextSlot: 'Tomorrow, 10:00 AM',
     avatar: '👩‍⚕️',
     color: '#FF6B57',
-    phone: '917360800529', // TODO: replace with this doctor's real WhatsApp number
+    phone: '917360800529', // TODO: replace with this doctor's real contact number
   },
   {
     id: 'd4',
@@ -53,7 +53,7 @@ export const doctors = [
     nextSlot: '5:15 PM',
     avatar: '👩‍⚕️',
     color: '#0A7F76',
-    phone: '917360800529', // TODO: replace with this doctor's real WhatsApp number
+    phone: '917360800529', // TODO: replace with this doctor's real contact number
   },
   {
     id: 'd5',
@@ -67,7 +67,7 @@ export const doctors = [
     nextSlot: 'Tomorrow, 11:30 AM',
     avatar: '🧑‍⚕️',
     color: '#123A5C',
-    phone: '917360800529', // TODO: replace with this doctor's real WhatsApp number
+    phone: '917360800529', // TODO: replace with this doctor's real contact number
   },
   {
     id: 'd6',
@@ -81,7 +81,7 @@ export const doctors = [
     nextSlot: '3:00 PM',
     avatar: '👩‍⚕️',
     color: '#2BB8AC',
-    phone: '917360800529', // TODO: replace with this doctor's real WhatsApp number
+    phone: '917360800529', // TODO: replace with this doctor's real contact number
   },
   {
     id: 'd7',
@@ -95,7 +95,7 @@ export const doctors = [
     nextSlot: '7:00 PM',
     avatar: '🧑‍⚕️',
     color: '#1B8A58',
-    phone: '917360800529', // TODO: replace with this doctor's real WhatsApp number
+    phone: '917360800529', // TODO: replace with this doctor's real contact number
   },
 ]
 

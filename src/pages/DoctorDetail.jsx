@@ -1,26 +1,46 @@
-import { useParams, Link } from 'react-router-dom'
-import { useState } from 'react'
-import { Star, Clock, Info, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Star, Clock, Info, CheckCircle2, Phone } from 'lucide-react'
 import Button from '../components/Button.jsx'
 import Modal from '../components/Modal.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Avatar from '../components/Avatar.jsx'
-import { doctors } from '../data/doctors.js'
-import { openWhatsApp, buildDoctorMessage } from '../utils/whatsapp.js'
+import { api } from '../utils/api.js'
+import { useAuth } from '../context/AuthContext.jsx'
+import { useToast } from '../context/ToastContext.jsx'
 
 const slots = ['10:00 AM', '11:30 AM', '2:00 PM', '4:30 PM', '6:00 PM', '7:30 PM']
 
 export default function DoctorDetail() {
   const { id } = useParams()
-  const doctor = doctors.find((d) => d.id === id)
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  const { showToast } = useToast()
+  const [doctor, setDoctor] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
   const [slot, setSlot] = useState(null)
   const [booked, setBooked] = useState(false)
 
-  if (!doctor) return <EmptyState icon="🩺" title="Doctor not found" message="This profile may be unavailable." ctaLabel="Browse Doctors" ctaTo="/doctors" />
+  useEffect(() => {
+    api.getDoctor(id).then(setDoctor).catch(() => setNotFound(true)).finally(() => setLoading(false))
+  }, [id])
 
-  const bookNow = () => {
-    setBooked(true)
-    openWhatsApp(buildDoctorMessage({ doctor, slot }), doctor.phone)
+  if (loading) return <div className="max-w-2xl mx-auto px-5 py-16 text-center text-sm text-navy-900/40">Loading...</div>
+  if (notFound || !doctor) return <EmptyState icon="🩺" title="Doctor not found" message="This profile may be unavailable." ctaLabel="Browse Doctors" ctaTo="/doctors" />
+
+  const bookNow = async () => {
+    if (!isAuthenticated) {
+      showToast('Please login to book a consultation')
+      navigate('/login')
+      return
+    }
+    try {
+      await api.bookConsultation({ doctorId: doctor.id, doctorName: doctor.name, slot, fee: doctor.fee })
+      setBooked(true)
+    } catch (err) {
+      showToast(err.message || 'Could not book consultation')
+    }
   }
 
   return (
@@ -35,7 +55,7 @@ export default function DoctorDetail() {
             <Star size={13} className="fill-amber-400 text-amber-400" /> {doctor.rating} ({doctor.reviews} reviews)
           </div>
           <p className="flex items-center gap-1.5 text-xs text-navy-900/50">
-            <Phone size={12} className="text-teal-600" /> +{doctor.phone.replace(/^91/, '91 ')}
+            <Phone size={12} className="text-teal-600" /> +{doctor.phone?.replace(/^91/, '91 ')}
           </p>
         </div>
       </div>
@@ -76,13 +96,8 @@ export default function DoctorDetail() {
         <div className="text-center py-4">
           <CheckCircle2 size={44} className="text-mint-600 mx-auto mb-3" />
           <p className="text-sm font-semibold mb-1">Booked with {doctor.name}</p>
-          <p className="text-xs text-navy-900/50 mb-5">We've opened WhatsApp directly with {doctor.name.replace('Dr. ', 'Dr. ')} — just hit send. You'll receive a reminder before the consultation.</p>
-          <div className="flex flex-col gap-2">
-            <button onClick={bookNow} className="focus-ring w-full flex items-center justify-center gap-1.5 text-sm font-semibold text-mint-600 py-1">
-              <MessageCircle size={16} /> Open WhatsApp again
-            </button>
-            <Button as={Link} to="/doctors" className="w-full">Back to Doctors</Button>
-          </div>
+          <p className="text-xs text-navy-900/50 mb-5">Saved to your account. You'll get a reminder before the consultation.</p>
+          <Button as={Link} to="/doctors" className="w-full">Back to Doctors</Button>
         </div>
       </Modal>
     </div>

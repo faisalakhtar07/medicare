@@ -1,20 +1,45 @@
-import { useParams, Link } from 'react-router-dom'
-import { useState } from 'react'
-import { FlaskConical, Clock, Home, Info, CheckCircle2, MessageCircle } from 'lucide-react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { FlaskConical, Clock, Home, Info, CheckCircle2 } from 'lucide-react'
 import Button from '../components/Button.jsx'
 import Modal from '../components/Modal.jsx'
 import EmptyState from '../components/EmptyState.jsx'
-import { labTests } from '../data/labTests.js'
-import { openWhatsApp, buildLabTestMessage } from '../utils/whatsapp.js'
+import { api } from '../utils/api.js'
+import { useAuth } from '../context/AuthContext.jsx'
+import { useToast } from '../context/ToastContext.jsx'
 
 export default function LabTestDetail() {
   const { id } = useParams()
-  const test = labTests.find((t) => t.id === id)
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  const { showToast } = useToast()
+  const [test, setTest] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
   const [booked, setBooked] = useState(false)
 
-  if (!test) return <EmptyState icon="🧪" title="Test not found" message="This lab test may be unavailable." ctaLabel="Browse Lab Tests" ctaTo="/lab-tests" />
+  useEffect(() => {
+    api.getLabTest(id).then(setTest).catch(() => setNotFound(true)).finally(() => setLoading(false))
+  }, [id])
+
+  if (loading) return <div className="max-w-3xl mx-auto px-5 py-16 text-center text-sm text-navy-900/40">Loading...</div>
+  if (notFound || !test) return <EmptyState icon="🧪" title="Test not found" message="This lab test may be unavailable." ctaLabel="Browse Lab Tests" ctaTo="/lab-tests" />
 
   const discountPct = Math.round(((test.mrp - test.price) / test.mrp) * 100)
+
+  const bookTest = async () => {
+    if (!isAuthenticated) {
+      showToast('Please login to book a test')
+      navigate('/login')
+      return
+    }
+    try {
+      await api.bookLabTest({ testId: test.id, testName: test.name, price: test.price })
+      setBooked(true)
+    } catch (err) {
+      showToast(err.message || 'Could not book test')
+    }
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-5 lg:px-6 py-6 md:py-10">
@@ -55,7 +80,7 @@ export default function LabTestDetail() {
       <div className="mb-6">
         <h2 className="text-sm font-semibold mb-2">Parameters Included</h2>
         <div className="flex flex-wrap gap-2">
-          {test.parameters.map((p) => (
+          {test.parameters?.map((p) => (
             <span key={p} className="text-xs bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full">{p}</span>
           ))}
         </div>
@@ -65,24 +90,14 @@ export default function LabTestDetail() {
         <Home size={14} className="text-teal-600" /> Free sample collection from your home
       </div>
 
-      <Button
-        className="w-full sm:w-auto"
-        onClick={() => { setBooked(true); openWhatsApp(buildLabTestMessage({ test })) }}
-      >
-        Book Test
-      </Button>
+      <Button className="w-full sm:w-auto" onClick={bookTest}>Book Test</Button>
 
       <Modal open={booked} onClose={() => setBooked(false)} title="Test Booked">
         <div className="text-center py-4">
           <CheckCircle2 size={44} className="text-mint-600 mx-auto mb-3" />
           <p className="text-sm font-semibold mb-1">{test.name} booked successfully</p>
-          <p className="text-xs text-navy-900/50 mb-5">We've opened WhatsApp with your test details — just hit send. Our phlebotomist will contact you to schedule sample collection.</p>
-          <div className="flex flex-col gap-2">
-            <button onClick={() => openWhatsApp(buildLabTestMessage({ test }))} className="focus-ring w-full flex items-center justify-center gap-1.5 text-sm font-semibold text-mint-600 py-1">
-              <MessageCircle size={16} /> Open WhatsApp again
-            </button>
-            <Button as={Link} to="/lab-tests" className="w-full">Browse More Tests</Button>
-          </div>
+          <p className="text-xs text-navy-900/50 mb-5">Saved to your account. Our team will contact you to schedule sample collection. You can also check status anytime from your profile.</p>
+          <Button as={Link} to="/lab-tests" className="w-full">Browse More Tests</Button>
         </div>
       </Modal>
     </div>

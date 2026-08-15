@@ -1,19 +1,24 @@
 import { useSearchParams } from 'react-router-dom'
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import ProductCard from '../components/ProductCard.jsx'
 import EmptyState from '../components/EmptyState.jsx'
-import { products } from '../data/products.js'
+import { ProductGridSkeleton } from '../components/Skeleton.jsx'
+import { api } from '../utils/api.js'
 
 export default function SearchResults() {
   const [params] = useSearchParams()
   const q = params.get('q') || ''
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const results = useMemo(() => {
-    if (!q) return []
-    const lower = q.toLowerCase()
-    return products.filter(
-      (p) => p.name.toLowerCase().includes(lower) || p.generic.toLowerCase().includes(lower) || p.brand.toLowerCase().includes(lower) || p.category.includes(lower)
-    )
+  useEffect(() => {
+    if (!q) {
+      setResults([])
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    api.getProducts({ q }).then(setResults).finally(() => setLoading(false))
   }, [q])
 
   return (
@@ -21,7 +26,9 @@ export default function SearchResults() {
       <h1 className="text-lg md:text-xl font-display font-bold mb-1">Results for "{q}"</h1>
       <p className="text-xs text-navy-900/40 mb-6">{results.length} products found</p>
 
-      {results.length === 0 ? (
+      {loading ? (
+        <ProductGridSkeleton />
+      ) : results.length === 0 ? (
         <EmptyState
           icon="🔍"
           title="No products found"

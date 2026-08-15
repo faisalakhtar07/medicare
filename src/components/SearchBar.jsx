@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, X, Clock, TrendingUp } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { products } from '../data/products.js'
+import { api } from '../utils/api.js'
 
 const popularSearches = ['Paracetamol', 'Vitamin D3', 'Cetirizine', 'BP Monitor', 'Ashwagandha']
 
@@ -10,6 +10,7 @@ export default function SearchBar({ className = '', autoFocus = false }) {
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
   const [recent, setRecent] = useState(['Dolo 650', 'Glucometer'])
+  const [suggestions, setSuggestions] = useState([])
   const navigate = useNavigate()
   const ref = useRef(null)
 
@@ -21,14 +22,16 @@ export default function SearchBar({ className = '', autoFocus = false }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const suggestions = query
-    ? products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.generic.toLowerCase().includes(query.toLowerCase()) ||
-          p.brand.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 6)
-    : []
+  useEffect(() => {
+    if (!query) {
+      setSuggestions([])
+      return
+    }
+    const t = setTimeout(() => {
+      api.getProducts({ q: query }).then((data) => setSuggestions(data.slice(0, 6))).catch(() => setSuggestions([]))
+    }, 250)
+    return () => clearTimeout(t)
+  }, [query])
 
   const runSearch = (q) => {
     if (!q.trim()) return
@@ -74,7 +77,7 @@ export default function SearchBar({ className = '', autoFocus = false }) {
                     onClick={() => runSearch(p.name)}
                     className="focus-ring w-full text-left px-2.5 py-2 rounded-lg hover:bg-skyfaint flex items-center gap-2.5 text-sm"
                   >
-                    <span className="text-lg">{p.image}</span>
+                    <span className="text-lg">{p.image?.startsWith('http') ? '💊' : (p.image || '💊')}</span>
                     <span>
                       <span className="font-medium">{p.name}</span>
                       <span className="text-navy-900/40"> · {p.generic}</span>

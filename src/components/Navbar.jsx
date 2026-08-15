@@ -4,8 +4,10 @@ import { Link, NavLink } from 'react-router-dom'
 import { Menu, X, MapPin, User, Heart, ShoppingCart, Cross, Search } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import SearchBar from './SearchBar.jsx'
+import NotificationBell from './NotificationBell.jsx'
 import { useCart } from '../context/CartContext.jsx'
 import { useWishlist } from '../context/WishlistContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 
 const navLinks = [
   { to: '/medicines', label: 'Medicines' },
@@ -20,6 +22,7 @@ export default function Navbar() {
   const [mobileSearch, setMobileSearch] = useState(false)
   const { count } = useCart()
   const { wishlist } = useWishlist()
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
@@ -57,9 +60,10 @@ export default function Navbar() {
             <button className="focus-ring flex items-center gap-1 text-xs font-medium text-navy-900/70 hover:text-teal-700">
               <MapPin size={15} /> Deliver to <span className="font-semibold">824101</span>
             </button>
-            <Link to="/login" className="focus-ring text-navy-900/70 hover:text-teal-700" aria-label="Account">
+            <Link to={isAuthenticated ? '/profile' : '/login'} className="focus-ring text-navy-900/70 hover:text-teal-700" aria-label="Account">
               <User size={19} />
             </Link>
+            <NotificationBell />
             <Link to="/wishlist" className="focus-ring relative text-navy-900/70 hover:text-teal-700" aria-label="Wishlist">
               <Heart size={19} />
               {wishlist.length > 0 && (
@@ -93,6 +97,7 @@ export default function Navbar() {
             <button onClick={() => setMobileSearch((s) => !s)} className="focus-ring" aria-label="Search">
               <Search size={20} />
             </button>
+            <NotificationBell />
             <Link to="/cart" className="focus-ring relative" aria-label="Cart">
               <ShoppingCart size={20} />
               {count > 0 && (
@@ -162,7 +167,11 @@ export default function Navbar() {
                     </NavLink>
                   ))}
                   <div className="h-px bg-navy-900/10 my-2" />
-                  <Link to="/login" onClick={() => setMenuOpen(false)} className="focus-ring px-2 py-2.5 rounded-lg hover:bg-skyfaint text-sm font-medium">Login / Signup</Link>
+                  {isAuthenticated ? (
+                    <Link to="/profile" onClick={() => setMenuOpen(false)} className="focus-ring px-2 py-2.5 rounded-lg hover:bg-skyfaint text-sm font-medium">My Account</Link>
+                  ) : (
+                    <Link to="/login" onClick={() => setMenuOpen(false)} className="focus-ring px-2 py-2.5 rounded-lg hover:bg-skyfaint text-sm font-medium">Login / Signup</Link>
+                  )}
                   <Link to="/wishlist" onClick={() => setMenuOpen(false)} className="focus-ring px-2 py-2.5 rounded-lg hover:bg-skyfaint text-sm font-medium">Wishlist</Link>
                   <Link to="/orders" onClick={() => setMenuOpen(false)} className="focus-ring px-2 py-2.5 rounded-lg hover:bg-skyfaint text-sm font-medium">My Orders</Link>
                   <Link to="/profile" onClick={() => setMenuOpen(false)} className="focus-ring px-2 py-2.5 rounded-lg hover:bg-skyfaint text-sm font-medium">Profile</Link>

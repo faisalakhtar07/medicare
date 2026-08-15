@@ -1,25 +1,42 @@
 import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { UploadCloud, FileCheck2, X, Camera, CheckCircle2, MessageCircle, Paperclip } from 'lucide-react'
+import { UploadCloud, FileCheck2, X, Camera, CheckCircle2 } from 'lucide-react'
 import Button from '../components/Button.jsx'
-import { openWhatsApp, buildPrescriptionMessage } from '../utils/whatsapp.js'
+import { api } from '../utils/api.js'
+import { useAuth } from '../context/AuthContext.jsx'
+import { useToast } from '../context/ToastContext.jsx'
 
 export default function PrescriptionUpload() {
   const [file, setFile] = useState(null)
   const [dragging, setDragging] = useState(false)
   const [uploaded, setUploaded] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const inputRef = useRef(null)
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  const { showToast } = useToast()
 
   const handleFile = (f) => {
     if (!f) return
     setFile(f)
   }
 
-  const confirm = () => {
-    setUploaded(true)
-    openWhatsApp(buildPrescriptionMessage({ fileName: file?.name }))
+  const confirm = async () => {
+    if (!isAuthenticated) {
+      showToast('Please login to upload a prescription')
+      navigate('/login')
+      return
+    }
+    setUploading(true)
+    try {
+      await api.uploadPrescription(file)
+      setUploaded(true)
+    } catch (err) {
+      showToast(err.message || 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
   }
 
   if (uploaded) {
@@ -29,17 +46,10 @@ export default function PrescriptionUpload() {
           <CheckCircle2 size={40} className="text-mint-600" />
         </motion.div>
         <h1 className="text-xl font-display font-bold mb-2">Prescription Uploaded</h1>
-        <p className="text-sm text-navy-900/50 mb-3">We've opened WhatsApp for you with your order request pre-filled.</p>
-        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200/60 rounded-lg p-3.5 text-xs text-amber-900/80 leading-relaxed text-left mb-6">
-          <Paperclip size={14} className="shrink-0 mt-0.5" />
-          <span>WhatsApp can't attach your photo automatically — tap the 📎 attach icon in the chat and select "{file?.name || 'your prescription photo'}" from your gallery before sending.</span>
-        </div>
-        <div className="flex flex-col gap-2">
-          <button onClick={() => openWhatsApp(buildPrescriptionMessage({ fileName: file?.name }))} className="focus-ring w-full flex items-center justify-center gap-1.5 text-sm font-semibold text-mint-600 py-1">
-            <MessageCircle size={16} /> Open WhatsApp again
-          </button>
-          <Button onClick={() => navigate('/medicines')}>Continue Shopping</Button>
-        </div>
+        <p className="text-sm text-navy-900/50 mb-8">
+          Saved to your account. Our pharmacist will review it and verify prescription-only medicines before processing your order.
+        </p>
+        <Button onClick={() => navigate('/medicines')}>Continue Shopping</Button>
       </div>
     )
   }
@@ -48,6 +58,12 @@ export default function PrescriptionUpload() {
     <div className="max-w-lg mx-auto px-5 lg:px-6 py-8 md:py-12">
       <h1 className="text-xl md:text-2xl font-display font-bold mb-1.5">Upload Prescription</h1>
       <p className="text-sm text-navy-900/50 mb-6">Upload a valid prescription when required. Our pharmacist may verify prescription-only medicines before processing the order.</p>
+
+      {!isAuthenticated && (
+        <div className="bg-amber-50 border border-amber-200/60 rounded-lg p-3.5 text-xs text-amber-900/80 mb-6">
+          You'll need to <Link to="/login" className="font-semibold underline">login</Link> before we can save your prescription to your account.
+        </div>
+      )}
 
       {!file ? (
         <div
@@ -80,7 +96,7 @@ export default function PrescriptionUpload() {
           </div>
           <div className="flex gap-3 mt-5">
             <Button variant="outline" className="flex-1" onClick={() => inputRef.current.click()}>Replace File</Button>
-            <Button className="flex-1" onClick={confirm}>Continue</Button>
+            <Button className="flex-1" onClick={confirm} disabled={uploading}>{uploading ? 'Uploading...' : 'Continue'}</Button>
           </div>
           <input ref={inputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleFile(e.target.files[0])} />
         </div>

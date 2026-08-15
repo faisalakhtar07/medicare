@@ -30,8 +30,12 @@ export default function ProductCard({ product }) {
       </button>
 
       <Link to={`/medicines/${product.id}`} className="focus-ring rounded-lg">
-        <div className="h-28 rounded-lg bg-skyfaint flex items-center justify-center text-4xl mb-3">
-          {product.image}
+        <div className="h-28 rounded-lg bg-skyfaint flex items-center justify-center text-4xl mb-3 overflow-hidden">
+          {product.image?.startsWith('http') ? (
+            <img src={product.image} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
+          ) : (
+            product.image || '💊'
+          )}
         </div>
         {product.prescriptionRequired && (
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-coral bg-coral/10 px-2 py-0.5 rounded-full mb-1.5">
