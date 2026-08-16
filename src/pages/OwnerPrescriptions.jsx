@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Link } from 'react-router-dom'
 import { ChevronLeft, FileText, Download } from 'lucide-react'
-import { api } from '../utils/api.js'
+import { api, FILE_BASE } from '../utils/api.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 
@@ -62,7 +62,7 @@ export default function OwnerPrescriptions() {
                 <p className="text-xs text-navy-900/40">{p.user?.mobile} · {new Date(p.createdAt).toLocaleDateString('en-IN')}</p>
               </div>
               <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 ${STATUS_COLOR[p.status]}`}>{p.status}</span>
-              <a href={p.fileUrl} target="_blank" rel="noreferrer" className="focus-ring text-navy-900/40 hover:text-teal-700 shrink-0" aria-label="View file">
+              <a href={`${FILE_BASE}${p.fileUrl}`} target="_blank" rel="noreferrer" className="focus-ring text-navy-900/40 hover:text-teal-700 shrink-0" aria-label="View file">
                 <Download size={17} />
               </a>
               <select
