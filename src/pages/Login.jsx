@@ -84,7 +84,6 @@ export default function Login() {
         <Link to="/staff/login" className="focus-ring hover:text-navy-900/70">Owner / Delivery Login →</Link>
       </p>
       <p className="text-center text-[11px] text-navy-900/30 mt-3">
-        Make sure your backend server is running at localhost:5000
       </p>
     </div>
   )

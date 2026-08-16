@@ -84,7 +84,6 @@ export default function Signup() {
         Already have an account? <Link to="/login" className="focus-ring text-teal-700 font-semibold">Login</Link>
       </p>
       <p className="text-center text-[11px] text-navy-900/30 mt-3">
-        Make sure your backend server is running at localhost:5000
       </p>
     </div>
   )
