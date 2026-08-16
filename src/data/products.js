@@ -307,7 +307,7 @@ export const products = [
   {
     id: 'p17',
     name: 'First Aid Kit — Essential',
-    brand: 'MEDICARE Essentials',
+    brand: 'POPULAR MEDI Essentials',
     generic: 'First Aid',
     category: 'first-aid',
     subcategory: 'Kits',
@@ -320,7 +320,7 @@ export const products = [
     inStock: true,
     image: '🩹',
     description: 'Essential first aid supplies for home and travel.',
-    manufacturer: 'MEDICARE Essentials',
+    manufacturer: 'POPULAR MEDI Essentials',
     country: 'India',
   },
   {

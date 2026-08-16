@@ -50,7 +50,7 @@ export default function Footer() {
               <span className="w-7 h-7 rounded-lg bg-teal-500 flex items-center justify-center text-white">
                 <Cross size={16} />
               </span>
-              <span className="text-lg font-display font-extrabold text-white">MEDICARE</span>
+              <span className="text-lg font-display font-extrabold text-white">POPULAR MEDI</span>
             </div>
             <p className="text-xs leading-relaxed text-white/50 mb-4">Healthcare Made Simple.</p>
             <div className="flex items-center gap-3">
@@ -78,14 +78,14 @@ export default function Footer() {
         <div className="flex items-start gap-2 bg-white/5 rounded-xl2 p-4 mb-8 text-[11px] leading-relaxed text-white/50">
           <ShieldCheck size={16} className="text-teal-400 shrink-0 mt-0.5" />
           <p>
-            MEDICARE does not provide medical advice, diagnosis or treatment. Prescription medicines are dispensed
+            POPULAR MEDI does not provide medical advice, diagnosis or treatment. Prescription medicines are dispensed
             only against a valid prescription verified by our pharmacist. Product and pricing information shown here
             is for demonstration purposes. Payments and login on this demo are mock implementations pending backend integration.
           </p>
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-6 border-t border-white/10 text-[11px] text-white/40">
-          <p>© 2026 MEDICARE. All rights reserved.</p>
+          <p>© 2026 POPULAR MEDI. All rights reserved.</p>
           <div className="flex items-center gap-3">
             <span className="px-2 py-1 bg-white/5 rounded">🔒 Secure Payments</span>
             <span className="px-2 py-1 bg-white/5 rounded">✓ Verified Pharmacy Partners</span>

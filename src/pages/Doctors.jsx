@@ -16,7 +16,7 @@ export default function Doctors() {
     api
       .getDoctors()
       .then(setDoctors)
-      .catch(() => setError('Could not reach the backend. Please check your internet connection or try again later.'))
+      .catch(() => setError('Could not reach the backend. Make sure it is running at localhost:5000.'))
       .finally(() => setLoading(false))
   }, [])
 

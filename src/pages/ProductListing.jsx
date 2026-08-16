@@ -44,7 +44,7 @@ export default function ProductListing({ title, filterCategory }) {
         setAllProducts(data)
         setBrands([...new Set(data.map((p) => p.brand))].sort())
       })
-      .catch(() => setError('Could not reach the backend. Please check your internet connection or try again later.'))
+      .catch(() => setError('Could not reach the backend. Make sure it is running at localhost:5000.'))
       .finally(() => setLoading(false))
   }, [category, sort])
 

@@ -6,16 +6,16 @@ const faqs = [
   { q: 'Do I need a prescription to order medicines?', a: 'Prescription-only medicines require a valid prescription, which our pharmacist verifies before your order is processed. Over-the-counter products can be ordered without one.' },
   { q: 'How long does delivery take?', a: 'Standard delivery typically arrives within 2–4 days. Express delivery, where available, arrives within 24 hours.' },
   { q: 'Can I cancel my order?', a: 'Orders can be cancelled before they are packed for shipping. Once shipped, cancellation may not be possible.' },
-  { q: 'Is my payment information secure?', a: 'This demo does not process real payments. In production, MEDICARE would use secure, PCI-compliant payment gateways.' },
+  { q: 'Is my payment information secure?', a: 'This demo does not process real payments. In production, POPULAR MEDI would use secure, PCI-compliant payment gateways.' },
   { q: 'How do I track my order?', a: 'Visit "My Orders" from your profile and select an order to see its live status on the tracking timeline.' },
 ]
 
 function AboutContent() {
   return (
     <>
-      <h1 className="text-2xl font-display font-bold mb-3">About MEDICARE</h1>
+      <h1 className="text-2xl font-display font-bold mb-3">About POPULAR MEDI</h1>
       <p className="text-sm text-navy-900/60 leading-relaxed mb-4">
-        MEDICARE is an online healthcare platform built to make ordering medicines, booking lab tests and
+        POPULAR MEDI is an online healthcare platform built to make ordering medicines, booking lab tests and
         consulting doctors simple and trustworthy for Indian households. This experience is currently a
         product demo showcasing what a modern pharmacy platform can look and feel like.
       </p>
@@ -74,12 +74,12 @@ function LegalContent({ title }) {
       <h1 className="text-2xl font-display font-bold mb-3">{title}</h1>
       <p className="text-sm text-navy-900/60 leading-relaxed mb-4">
         This is placeholder legal content for demonstration purposes only and does not constitute a binding
-        agreement. In a production deployment, this page would contain MEDICARE's complete {title.toLowerCase()},
+        agreement. In a production deployment, this page would contain POPULAR MEDI's complete {title.toLowerCase()},
         reviewed by qualified legal counsel and covering data handling, user responsibilities, prescription
         verification, returns, and platform usage terms.
       </p>
       <p className="text-sm text-navy-900/60 leading-relaxed">
-        MEDICARE does not provide medical advice, diagnosis or treatment through this platform. Always consult
+        POPULAR MEDI does not provide medical advice, diagnosis or treatment through this platform. Always consult
         a qualified healthcare professional for medical concerns.
       </p>
     </>

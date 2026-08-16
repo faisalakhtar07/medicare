@@ -1,5 +1,8 @@
-
-const API_BASE = `${import.meta.env.VITE_API_URL || 'https://medicare-backend-1-drec.onrender.com'}/api`
+// Central place that talks to the POPULAR MEDI backend.
+// In local development the backend runs at http://localhost:5000.
+// In production, set VITE_API_URL in Vercel's Environment Variables to your
+// deployed backend's URL (e.g. https://medicare-backend.onrender.com).
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api`
 
 function getToken() {
   return localStorage.getItem('medicare_token')
@@ -76,7 +79,7 @@ export const api = {
   // Delivery dashboard
   deliveryOrders: () => request('/delivery/orders').then(withId),
   deliveryOrder: (id) => request(`/delivery/orders/${id}`).then(withId),
-  deliveryUpdateStatus: (id, status) => request(`/delivery/orders/${id}/status`, { method: 'PUT', body: { status } }).then(withId),
+  deliveryUpdateStatus: (id, status, otp) => request(`/delivery/orders/${id}/status`, { method: 'PUT', body: { status, otp } }).then(withId),
 
   // Notifications
   myNotifications: () => request('/notifications/mine').then((d) => ({ ...d, notifications: withId(d.notifications) })),
@@ -133,4 +136,4 @@ export const api = {
   verifyPayment: (payload) => request('/payments/verify', { method: 'POST', body: payload }),
 }
 
-export const FILE_BASE = import.meta.env.VITE_API_URL || 'https://medicare-backend-1-drec.onrender.com'
+export const FILE_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Phone, MapPin, IndianRupee, LogOut, Package } from 'lucide-react'
+import { Phone, MapPin, IndianRupee, LogOut, Package, ShieldCheck } from 'lucide-react'
 import Button from '../components/Button.jsx'
+import Modal from '../components/Modal.jsx'
 import { api } from '../utils/api.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
@@ -12,6 +13,10 @@ export default function DeliveryDashboard() {
   const navigate = useNavigate()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [otpModalOrder, setOtpModalOrder] = useState(null)
+  const [otpInput, setOtpInput] = useState('')
+  const [otpError, setOtpError] = useState('')
+  const [verifying, setVerifying] = useState(false)
 
   const load = () => api.deliveryOrders().then(setOrders)
 
@@ -39,6 +44,28 @@ export default function DeliveryDashboard() {
       load()
     } catch (err) {
       showToast(err.message || 'Could not update status')
+    }
+  }
+
+  const openDeliverModal = (order) => {
+    setOtpModalOrder(order)
+    setOtpInput('')
+    setOtpError('')
+  }
+
+  const confirmDelivery = async () => {
+    if (!otpModalOrder) return
+    setVerifying(true)
+    setOtpError('')
+    try {
+      await api.deliveryUpdateStatus(otpModalOrder.id, 'Delivered', otpInput.trim())
+      showToast('Delivery confirmed ✅')
+      setOtpModalOrder(null)
+      load()
+    } catch (err) {
+      setOtpError(err.message || 'Incorrect OTP')
+    } finally {
+      setVerifying(false)
     }
   }
 
@@ -88,7 +115,9 @@ export default function DeliveryDashboard() {
                   <Button size="sm" variant="outline" onClick={() => updateStatus(o.id, 'Out for Delivery')}>Picked Up / Out for Delivery</Button>
                 )}
                 {o.status === 'Out for Delivery' && (
-                  <Button size="sm" onClick={() => updateStatus(o.id, 'Delivered')}>Mark Delivered</Button>
+                  <Button size="sm" onClick={() => openDeliverModal(o)}>
+                    <ShieldCheck size={14} /> Mark Delivered (needs OTP)
+                  </Button>
                 )}
               </div>
             </div>
@@ -109,6 +138,27 @@ export default function DeliveryDashboard() {
           </div>
         </>
       )}
+
+      <Modal open={!!otpModalOrder} onClose={() => setOtpModalOrder(null)} title="Confirm Delivery">
+        <div className="space-y-3">
+          <p className="text-sm text-navy-900/60">
+            Ask <span className="font-semibold text-navy-900">{otpModalOrder?.user?.name}</span> for the 4-digit code from their app, and enter it below to confirm this order reached them.
+          </p>
+          <input
+            autoFocus
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="Enter 4-digit OTP"
+            value={otpInput}
+            onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
+            className="focus-ring w-full border border-navy-900/15 rounded-lg px-3.5 py-3 text-center text-2xl font-bold tracking-[0.5em]"
+          />
+          {otpError && <p className="text-xs text-coral text-center">{otpError}</p>}
+          <Button className="w-full" disabled={otpInput.length !== 4 || verifying} onClick={confirmDelivery}>
+            {verifying ? 'Verifying...' : 'Confirm Delivery'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }
